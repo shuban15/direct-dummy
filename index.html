@@ -145,83 +145,82 @@
     </div>
 
     <script type="module">
-       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-       import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // Import the functions you need from the SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-          const firebaseConfig = {
-            apiKey: "AIzaSyAB_RIiRXODluI8yFrTTt7dLB6Pcjv4Vb4",
-            authDomain: "direct-1527.firebaseapp.com",
-            projectId: "direct-1527",
-            storageBucket: "direct-1527.firebasestorage.app",
-            messagingSenderId: "321566657922",
-            appId: "1:321566657922:web:70f563b4966ca89b4fd39b",
-            measurementId: "G-DL38STMF7W"
-        };
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAB_RIiRXODluI8yFrTTt7dLB6Pcjv4Vb4",
+        authDomain: "direct-1527.firebaseapp.com",
+        projectId: "direct-1527",
+        storageBucket: "direct-1527.firebasestorage.app",
+        messagingSenderId: "321566657922",
+        appId: "1:321566657922:web:70f563b4966ca89b4fd39b",
+        measurementId: "G-DL38STMF7W"
+    };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // Define validateAdmin on window so the onclick button can find it
-        window.validateAdmin = async function() {
-            const user = document.getElementById('adminUser').value.trim();
-            const pass = document.getElementById('adminPass').value;
-            const msg = document.getElementById('msg');
-            const loginBox = document.getElementById('loginBox');
+    // Attach the function to the window object so the button's onclick can find it
+    window.validateAdmin = async function() {
+        const user = document.getElementById('adminUser').value.trim();
+        const pass = document.getElementById('adminPass').value;
+        const msg = document.getElementById('msg');
+        const loginBox = document.getElementById('loginBox');
 
-            if (!user || !pass) {
-                msg.style.color = "var(--neon-main)";
-                msg.innerText = "FIELDS CANNOT BE EMPTY";
-                return;
-            }
-
-            try {
-                // Direct lookup by Document ID (The Admin Name)
-                const adminRef = doc(db, "admins", user);
-                const docSnap = await getDoc(adminRef);
-
-                if (docSnap.exists()) {
-                    const dbPassword = docSnap.data().password;
-
-                    if (dbPassword === pass) {
-                        // Success Logic
-                        msg.style.color = "var(--success-green)";
-                        msg.innerText = "AUTHORIZATION GRANTED. DECRYPTING...";
-                        
-                        // Disable inputs
-                        document.querySelectorAll('input').forEach(i => i.disabled = true);
-                        
-                        // Save session details
-                        localStorage.setItem("adminID", user);
-                        localStorage.setItem("childName", "SATELLITE_ALPHA_01");
-                        localStorage.setItem("trackedSim", "SIM-8842-990-X");
-                        
-                        setTimeout(() => {
-                            window.location.href = "admin_hub.html"; 
-                        }, 1500);
-                    } else {
-                        showError("ACCESS DENIED - INVALID KEY");
-                    }
-                } else {
-                    showError("ACCESS DENIED - UNKNOWN ADMIN");
-                }
-            } catch (e) {
-                msg.style.color = "var(--neon-main)";
-                msg.innerText = "SYSTEM OFFLINE";
-                console.error("Link Error:", e);
-            }
-        };
-
-        function showError(text) {
-            const msg = document.getElementById('msg');
-            const loginBox = document.getElementById('loginBox');
-            msg.style.color = "var(--neon-main)";
-            msg.innerText = text;
-            
-            // Stark-style shake effect
-            loginBox.style.transform = "translateX(10px)";
-            setTimeout(() => { loginBox.style.transform = "translateX(0)"; }, 100);
+        if (!user || !pass) {
+            msg.innerText = "FIELDS CANNOT BE EMPTY";
+            return;
         }
-    </script>
+
+        try {
+            // Reference to the specific admin document in your 'admins' collection
+            const adminRef = doc(db, "admin", user);
+            const docSnap = await getDoc(adminRef);
+
+            if (docSnap.exists()) {
+                const dbData = docSnap.data();
+
+                // Check if the password matches the one in the database
+                if (dbData.password === pass) {
+                    msg.style.color = "var(--success-green)";
+                    msg.innerText = "AUTHORIZATION GRANTED. DECRYPTING...";
+                    
+                    // Save session data for the dashboard
+                    localStorage.setItem("adminID", user);
+                    localStorage.setItem("childName", "SATELLITE_ALPHA_01");
+                    localStorage.setItem("trackedSim", "SIM-8842-990-X");
+                    
+                    document.querySelectorAll('input').forEach(i => i.disabled = true);
+
+                    setTimeout(() => {
+                        window.location.href = "admin_hub.html"; 
+                    }, 1500);
+                } else {
+                    showError("ACCESS DENIED - INVALID KEY");
+                }
+            } else {
+                showError("ACCESS DENIED - UNKNOWN ADMIN");
+            }
+        } catch (error) {
+            msg.innerText = "SYSTEM OFFLINE";
+            console.error("Auth Error:", error);
+        }
+    };
+
+    function showError(text) {
+        const msg = document.getElementById('msg');
+        const loginBox = document.getElementById('loginBox');
+        msg.style.color = "var(--neon-main)";
+        msg.innerText = text;
+        
+        // Shake animation
+        loginBox.style.transform = "translateX(10px)";
+        setTimeout(() => { loginBox.style.transform = "translateX(0)"; }, 100);
+    }
+</script>>
 </body>
 </html>
