@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIRECT | ADMIN AUTH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-main: #ff003c; 
+            --deep-black: #000000;
+            --glow: rgba(255, 0, 60, 0.5);
+            --success-green: #39ff14; 
+        }
+
+        body {
+            background-color: var(--deep-black);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            width: 200%; height: 200%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 60, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 60, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            transform: rotate(15deg);
+        }
+
+        .login-container {
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .brand {
+            font-size: 3.5rem;
+            letter-spacing: 15px;
+            color: var(--neon-main);
+            text-shadow: 0 0 20px var(--glow);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .sub-brand {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: white;
+            opacity: 0.7;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+        }
+
+        .input-wrap {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .input-wrap label {
+            display: block;
+            font-size: 0.6rem;
+            color: var(--neon-main);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            padding: 18px;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+            border-radius: 4px;
+        }
+
+        input:focus {
+            border-color: var(--neon-main);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.2);
+        }
+
+        .btn-auth {
+            width: 100%;
+            background: var(--neon-main);
+            color: black;
+            border: none;
+            padding: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            border-radius: 12px;
+            text-transform: uppercase;
+            box-shadow: 0 0 30px var(--glow);
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        #msg {
+            margin-top: 25px;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--neon-main); 
+            height: 20px;
+            transition: color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container" id="loginBox">
+        <h1 class="brand">D.I.R.E.C.T</h1>
+        <div class="sub-brand">Mobile Satellite Link</div>
+
+        <div class="input-wrap">
+            <label>Admin ID</label>
+            <input type="text" id="adminUser" placeholder="ENTER ID" autocomplete="off">
+        </div>
+
+        <div class="input-wrap">
+            <label>Encryption Key</label>
+            <input type="password" id="adminPass" placeholder="••••••••" autocomplete="off">
+        </div>
+
+        <button class="btn-auth" onclick="validateAdmin()">Initialize</button>
+        
+        <div id="msg">SYSTEM READY</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAB_RIiRXODluI8yFrTTt7dLB6Pcjv4Vb4",
+            authDomain: "direct-1527.firebaseapp.com",
+            projectId: "direct-1527",
+            storageBucket: "direct-1527.firebasestorage.app",
+            messagingSenderId: "321566657922",
+            appId: "1:321566657922:web:70f563b4966ca89b4fd39b",
+            measurementId: "G-DL38STMF7W"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Define validateAdmin on window so the onclick button can find it
+        window.validateAdmin = async function() {
+            const user = document.getElementById('adminUser').value.trim();
+            const pass = document.getElementById('adminPass').value;
+            const msg = document.getElementById('msg');
+            const loginBox = document.getElementById('loginBox');
+
+            if (!user || !pass) {
+                msg.style.color = "var(--neon-main)";
+                msg.innerText = "FIELDS CANNOT BE EMPTY";
+                return;
+            }
+
+            try {
+                // Direct lookup by Document ID (The Admin Name)
+                const adminRef = doc(db, "admins", user);
+                const docSnap = await getDoc(adminRef);
+
+                if (docSnap.exists()) {
+                    const dbPassword = docSnap.data().password;
+
+                    if (dbPassword === pass) {
+                        // Success Logic
+                        msg.style.color = "var(--success-green)";
+                        msg.innerText = "AUTHORIZATION GRANTED. DECRYPTING...";
+                        
+                        // Disable inputs
+                        document.querySelectorAll('input').forEach(i => i.disabled = true);
+                        
+                        // Save session details
+                        localStorage.setItem("adminID", user);
+                        localStorage.setItem("childName", "SATELLITE_ALPHA_01");
+                        localStorage.setItem("trackedSim", "SIM-8842-990-X");
+                        
+                        setTimeout(() => {
+                            window.location.href = "admin_hub.html"; 
+                        }, 1500);
+                    } else {
+                        showError("ACCESS DENIED - INVALID KEY");
+                    }
+                } else {
+                    showError("ACCESS DENIED - UNKNOWN ADMIN");
+                }
+            } catch (e) {
+                msg.style.color = "var(--neon-main)";
+                msg.innerText = "SYSTEM OFFLINE";
+                console.error("Link Error:", e);
+            }
+        };
+
+        function showError(text) {
+            const msg = document.getElementById('msg');
+            const loginBox = document.getElementById('loginBox');
+            msg.style.color = "var(--neon-main)";
+            msg.innerText = text;
+            
+            // Stark-style shake effect
+            loginBox.style.transform = "translateX(10px)";
+            setTimeout(() => { loginBox.style.transform = "translateX(0)"; }, 100);
+        }
+    </script>
+</body>
+</html>
