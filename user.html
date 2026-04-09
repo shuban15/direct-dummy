@@ -223,6 +223,31 @@
         console.log(`Syncing location for Parent: ${parentID}`);
     }, (err) => console.error(err), { enableHighAccuracy: true });
     }
+
+    // 1. Get Parent Phone Number from the previous screen
+    const parentID = localStorage.getItem("parentPhone");
+    
+    // 2. Start automated high-precision tracking
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition((position) => {
+            const pLat = position.coords.latitude;
+            const pLng = position.coords.longitude;
+    
+            // 3. Directly push to the unique parent node in Firebase
+            set(ref(db, 'tracking/' + parentID + '/parent_live'), {
+                lat: pLat,
+                lng: pLng,
+                timestamp: Date.now()
+            });
+            
+            console.log("Dynamic Home Updated");
+        }, (error) => {
+            console.error("GPS Error:", error);
+        }, {
+            enableHighAccuracy: true, // Crucial for 20m precision
+            maximumAge: 0
+        });
+    }
 </script>
 
 </body>
