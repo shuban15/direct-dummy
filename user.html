@@ -168,8 +168,36 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-rK7iXlpN4I1gGqWxaYQXxt_kJUyVGGI",
+        authDomain: "direct-15275.firebaseapp.com",
+        databaseURL: "https://direct-15275-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "direct-15275",
+        appId: "1:408729374045:web:e4f89b945de9092d182cb4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const parentID = localStorage.getItem("parentPhone");
+
+    if (parentID && "geolocation" in navigator) {
+        navigator.geolocation.watchPosition((position) => {
+        // Pushing directly to the parent's unique node
+        set(ref(db, 'tracking/' + parentID + '/parent_live'), {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            timestamp: Date.now()
+        });
+        }, (error) => {
+        alert("GPS Error: " + error.message);
+        }, { enableHighAccuracy: true });
+    } else {
+        console.error("Missing Parent ID or GPS support");
+    }
     // Retrieves the name from the previous page
     document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
@@ -205,8 +233,7 @@
     }, 2000);
 
     // Retrieve the parent phone number from local storage
-    const parentID = localStorage.getItem("parentPhone"); 
-    const db = getDatabase();
+    const parentID = localStorage.getItem("parentPhone");
 
     if ("geolocation" in navigator) {
     navigator.geolocation.watchPosition((pos) => {
@@ -225,25 +252,6 @@
         console.log(`Syncing location for Parent: ${parentID}`);
     }, (err) => console.error(err), { enableHighAccuracy: true });
     }
-    
-    
-    // 2. Start automated high-precision tracking
-    if ("geolocation" in navigator) {
-    navigator.geolocation.watchPosition((position) => {
-        // This is the line that actually pushes the data
-        set(ref(db, 'tracking/' + parentID + '/parent_live'), {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            timestamp: Date.now()
-        });
-        console.log("Coordinate push successful!");
-    }, (error) => {
-        console.error("GPS Error Code: " + error.code + " - " + error.message);
-    }, {
-        enableHighAccuracy: true,
-        maximumAge: 0
-    });
-}
 </script>
 
 </body>
