@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIRECT | LOCKED PROTOCOL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --deep-black: #000000;
+            --danger-red: #ff3b3b;
+            --disabled: #444;
+        }
+
+        html, body {
+            background-color: var(--deep-black);
+            margin: 0; padding: 0;
+            height: 100dvh; width: 100%;
+            overflow: hidden; 
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .box-title {
+            color: var(--neon-blue);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .coords-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            text-align: center;
+            gap: 5px;
+        }
+        .coord-label { color: var(--neon-blue); font-size: 0.6rem; display: block; }
+
+        .split-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .needle-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pointer {
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 100px solid var(--neon-blue);
+            filter: drop-shadow(0 0 12px var(--neon-blue));
+            transform-origin: bottom center;
+            transition: transform 0.3s ease-out;
+        }
+
+        .protocol-box {
+            border: 1px solid var(--disabled);
+            background: rgba(255, 255, 255, 0.01);
+            transition: 0.3s ease;
+        }
+        .protocol-box.active {
+            border-color: var(--danger-red);
+            background: rgba(255, 59, 59, 0.08);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .fixed-val {
+            font-size: 1.5rem;
+            color: var(--disabled);
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .fixed-val.active {
+            color: var(--danger-red);
+            text-shadow: 0 0 10px var(--danger-red);
+        }
+
+        .switch { position: relative; width: 48px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #222; transition: .4s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--danger-red); }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="box" style="text-align: center;">
+        <div class="box-title">Tracking Subject</div>
+        <div id="uName" style="font-size: 1.2rem;">...</div>
+    </div>
+
+    <div class="box">
+        <div class="box-title">Spatial Data (X, Y, Z)</div>
+        <div class="coords-grid">
+            <div class="coord-item"><span class="coord-label">X</span><span id="outX">0.000</span></div>
+            <div class="coord-item"><span class="coord-label">Y</span><span id="outY">0.000</span></div>
+            <div class="coord-item"><span class="coord-label">Z</span><span id="outZ">0.0m</span></div>
+        </div>
+    </div>
+
+    <div class="split-row">
+        <div class="box" style="margin-bottom:0;">
+            <div class="box-title">Distance</div>
+            <span style="font-size: 1.3rem;"><span id="displayM">0</span> m</span>
+        </div>
+        <div class="box" style="margin-bottom:0;">
+            <div class="box-title">Steps</div>
+            <span style="font-size: 1.3rem;" id="displayS">0</span>
+        </div>
+    </div>
+
+    <div class="needle-area">
+        <div id="ptr" class="pointer"></div>
+    </div>
+
+    <div class="box protocol-box" id="pBox">
+        <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol (Locked)</div>
+        <div class="controls">
+            <div>
+                <span id="lockVal" class="fixed-val">20</span>
+                <small id="pUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="pToggle" onchange="handleProtocol()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Retrieves the name from the previous page
+    document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
+
+    function handleProtocol() {
+        const isOn = document.getElementById('pToggle').checked;
+        const box = document.getElementById('pBox');
+        const label = document.getElementById('pLabel');
+        const val = document.getElementById('lockVal');
+        const unit = document.getElementById('pUnit');
+
+        if(isOn) {
+            box.classList.add('active');
+            val.classList.add('active');
+            label.style.color = "var(--danger-red)";
+            unit.style.color = "var(--danger-red)";
+        } else {
+            box.classList.remove('active');
+            val.classList.remove('active');
+            label.style.color = "var(--disabled)";
+            unit.style.color = "var(--disabled)";
+        }
+    }
+
+    const needle = document.getElementById('ptr');
+    setInterval(() => {
+        needle.style.transform = `rotate(${Math.random() * 360}deg)`;
+        let d = (Math.random() * 50).toFixed(1);
+        document.getElementById('displayM').innerText = d;
+        document.getElementById('displayS').innerText = Math.round(d / 0.75);
+        document.getElementById('outX').innerText = (13.08 + Math.random()/100).toFixed(4);
+        document.getElementById('outY').innerText = (80.27 + Math.random()/100).toFixed(4);
+        document.getElementById('outZ').innerText = (Math.random() * 3).toFixed(1) + "m";
+    }, 2000);
+
+    // Retrieve the parent phone number from local storage
+    const parentID = localStorage.getItem("parentPhone");
+
+    if ("geolocation" in navigator) {
+    navigator.geolocation.watchPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // Use the Parent Number as the database node name
+        // Path: tracking/parent_phones/+91XXXXXXXXXX
+        set(ref(db, 'tracking/parent_phones/' + parentID), {
+        lat: lat,
+        lng: lng,
+        timestamp: Date.now(),
+        status: "ACTIVE"
+        });
+
+        console.log(`Syncing location for Parent: ${parentID}`);
+    }, (err) => console.error(err), { enableHighAccuracy: true });
+    }
+</script>
+
+</body>
+</html>
