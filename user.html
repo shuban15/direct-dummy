@@ -130,11 +130,11 @@
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Data (X, Y, Z)</div>
+        <div class="box-title">Spatial Data (Lat, Lng, Alt)</div>
         <div class="coords-grid">
-            <div class="coord-item"><span class="coord-label">X</span><span id="outX">0.000</span></div>
-            <div class="coord-item"><span class="coord-label">Y</span><span id="outY">0.000</span></div>
-            <div class="coord-item"><span class="coord-label">Z</span><span id="outZ">0.0m</span></div>
+            <div class="coord-item"><span class="coord-label">LAT</span><span id="outX">0.00</span></div>
+            <div class="coord-item"><span class="coord-label">LNG</span><span id="outY">0.00</span></div>
+            <div class="coord-item"><span class="coord-label">ALT</span><span id="outZ">0.0m</span></div>
         </div>
     </div>
 
@@ -161,7 +161,7 @@
                 <small id="pUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
             </div>
             <label class="switch">
-                <input type="checkbox" id="pToggle" onchange="handleProtocol()">
+                <input type="checkbox" id="pToggle">
                 <span class="slider"></span>
             </label>
         </div>
@@ -170,7 +170,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA-rK7iXlpN4I1gGqWxaYQXxt_kJUyVGGI",
@@ -183,26 +183,42 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const parentID = localStorage.getItem("parentPhone");
+    const needle = document.getElementById('ptr');
 
-    if (parentID && "geolocation" in navigator) {
-        navigator.geolocation.watchPosition((position) => {
-        // Pushing directly to the parent's unique node
-        set(ref(db, 'tracking/' + parentID + '/parent_live'), {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            timestamp: Date.now()
-        });
-        }, (error) => {
-        alert("GPS Error: " + error.message);
-        }, { enableHighAccuracy: true });
-    } else {
-        console.error("Missing Parent ID or GPS support");
-    }
-    // Retrieves the name from the previous page
+    // 1. UI Initialization
     document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
-    function handleProtocol() {
-        const isOn = document.getElementById('pToggle').checked;
+    // 2. Geolocation Watcher (PUSH Parent Coords to DB)
+    if (parentID && "geolocation" in navigator) {
+        navigator.geolocation.watchPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const alt = position.coords.altitude || 0;
+
+            // Update UI with real parent coords (2 decimals as requested)
+            document.getElementById('outX').innerText = lat.toFixed(2);
+            document.getElementById('outY').innerText = lng.toFixed(2);
+            document.getElementById('outZ').innerText = alt.toFixed(1) + "m";
+
+            // Push to Firebase under parent's number
+            set(ref(db, 'tracking/' + parentID + '/parent_live'), {
+                lat: lat,
+                lng: lng,
+                timestamp: Date.now(),
+                status: "ACTIVE"
+            });
+
+            // Point needle towards a "random" north for effect
+            needle.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+
+        }, (error) => {
+            console.error("GPS Error: " + error.message);
+        }, { enableHighAccuracy: true });
+    }
+
+    // 3. Distance Protocol Toggle Logic
+    document.getElementById('pToggle').addEventListener('change', (e) => {
+        const isOn = e.target.checked;
         const box = document.getElementById('pBox');
         const label = document.getElementById('pLabel');
         const val = document.getElementById('lockVal');
@@ -213,45 +229,28 @@
             val.classList.add('active');
             label.style.color = "var(--danger-red)";
             unit.style.color = "var(--danger-red)";
+            label.innerText = "Distance Protocol (ACTIVE)";
         } else {
             box.classList.remove('active');
             val.classList.remove('active');
             label.style.color = "var(--disabled)";
             unit.style.color = "var(--disabled)";
+            label.innerText = "Distance Protocol (Locked)";
         }
-    }
+    });
 
-    const needle = document.getElementById('ptr');
-    setInterval(() => {
-        needle.style.transform = `rotate(${Math.random() * 360}deg)`;
-        let d = (Math.random() * 50).toFixed(1);
-        document.getElementById('displayM').innerText = d;
-        document.getElementById('displayS').innerText = Math.round(d / 0.75);
-        document.getElementById('outX').innerText = (13.08 + Math.random()/100).toFixed(4);
-        document.getElementById('outY').innerText = (80.27 + Math.random()/100).toFixed(4);
-        document.getElementById('outZ').innerText = (Math.random() * 3).toFixed(1) + "m";
-    }, 2000);
+    // 4. Listen for Child Data (To update distance display)
+    // This part assumes your ESP32-C3 is pushing to 'tracking/[parentID]/child_live'
+    const childRef = ref(db, 'tracking/' + parentID + '/child_live');
+    onValue(childRef, (snapshot) => {
+        const childData = snapshot.val();
+        if(childData) {
+            // Logic to calculate distance between Parent and Child would go here
+            // For the demo, we show the link is active
+            console.log("Child data received: ", childData);
+        }
+    });
 
-    // Retrieve the parent phone number from local storage
-    const parentID = localStorage.getItem("parentPhone");
-
-    if ("geolocation" in navigator) {
-    navigator.geolocation.watchPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-
-        // Use the Parent Number as the database node name
-        // Path: tracking/parent_phones/+91XXXXXXXXXX
-        set(ref(db, 'tracking/parent_phones/' + parentID), {
-        lat: lat,
-        lng: lng,
-        timestamp: Date.now(),
-        status: "ACTIVE"
-        });
-
-        console.log(`Syncing location for Parent: ${parentID}`);
-    }, (err) => console.error(err), { enableHighAccuracy: true });
-    }
 </script>
 
 </body>
