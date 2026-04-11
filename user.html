@@ -189,33 +189,38 @@
     document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
     // 2. Geolocation Watcher (PUSH Parent Coords to DB)
-    if (parentID && "geolocation" in navigator) {
-        navigator.geolocation.watchPosition((position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const alt = position.coords.altitude || 0;
+   const parentID = localStorage.getItem("parentPhone");
 
-            // Update UI with real parent coords (2 decimals as requested)
-            document.getElementById('outX').innerText = lat.toFixed(2);
-            document.getElementById('outY').innerText = lng.toFixed(2);
-            document.getElementById('outZ').innerText = alt.toFixed(1) + "m";
+if (parentID && "geolocation" in navigator) {
+    navigator.geolocation.watchPosition((position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-            // Push to Firebase under parent's number
-            set(ref(db, 'tracking/' + parentID + '/parent_live'), {
-                lat: lat,
-                lng: lng,
-                timestamp: Date.now(),
-                status: "ACTIVE"
-            });
+        // 1. DISPLAY: 6 Decimals shows movement down to 10cm (inches)
+        // This ensures people see the numbers "ticking" as you walk
+        document.getElementById('outX').innerText = lat.toFixed(6);
+        document.getElementById('outY').innerText = lng.toFixed(6);
+        
+        // 2. VISUALS: Rotate the needle slightly based on speed or random jitter 
+        // to show the system is "live" and active
+        const needle = document.getElementById('ptr');
+        needle.style.transform = `rotate(${(Math.random() * 10) - 5}deg)`;
 
-            // Point needle towards a "random" north for effect
-            needle.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+        // 3. PUSH: Send full precision to Firebase for the tracker
+        set(ref(db, 'tracking/' + parentID + '/parent_live'), {
+            lat: lat,
+            lng: lng,
+            timestamp: Date.now()
+        });
 
-        }, (error) => {
-            console.error("GPS Error: " + error.message);
-        }, { enableHighAccuracy: true });
-    }
-
+    }, (error) => {
+        console.error("Link Error: ", error.message);
+    }, {
+        enableHighAccuracy: true, // Forces phone to use GPS hardware, not just Wi-Fi
+        maximumAge: 0,            // Do NOT use a cached location
+        timeout: 27000            // Give the GPS time to respond
+    });
+}
     // 3. Distance Protocol Toggle Logic
     document.getElementById('pToggle').addEventListener('change', (e) => {
         const isOn = e.target.checked;
