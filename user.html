@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIRECT | LOCKED PROTOCOL</title>
+    <title>D.I.R.E.C.T</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,6 +20,7 @@
             overflow: hidden; 
             font-family: 'Orbitron', sans-serif;
             color: white;
+            background-image: radial-gradient(circle at 50% 50%, #001a1d 0%, #000 100%);
         }
 
         .main-wrapper {
@@ -37,6 +38,7 @@
             padding: 12px;
             margin-bottom: 10px;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .box-title {
@@ -49,11 +51,12 @@
 
         .coords-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             text-align: center;
-            gap: 5px;
+            gap: 10px;
         }
-        .coord-label { color: var(--neon-blue); font-size: 0.6rem; display: block; }
+        .coord-label { color: var(--neon-blue); font-size: 0.6rem; display: block; margin-bottom: 4px; }
+        .val-large { font-size: 0.9rem; letter-spacing: 1px; }
 
         .split-row {
             display: grid;
@@ -68,16 +71,25 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+        }
+
+        .compass-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border: 1px dashed rgba(0, 243, 255, 0.2);
+            border-radius: 50%;
         }
 
         .pointer {
             width: 0; height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 100px solid var(--neon-blue);
-            filter: drop-shadow(0 0 12px var(--neon-blue));
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 80px solid var(--neon-blue);
+            filter: drop-shadow(0 0 15px var(--neon-blue));
             transform-origin: bottom center;
-            transition: transform 0.3s ease-out;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .protocol-box {
@@ -88,6 +100,7 @@
         .protocol-box.active {
             border-color: var(--danger-red);
             background: rgba(255, 59, 59, 0.08);
+            box-shadow: 0 0 15px rgba(255, 59, 59, 0.2);
         }
 
         .controls {
@@ -124,44 +137,44 @@
 <body>
 
 <div class="main-wrapper">
-    <div class="box" style="text-align: center;">
-        <div class="box-title">Tracking Subject</div>
-        <div id="uName" style="font-size: 1.2rem;">...</div>
+    <div class="box" style="text-align: center; border-bottom: 2px solid var(--neon-blue);">
+        <div class="box-title">SUBJECT IDENTIFIED</div>
+        <div id="uName" style="font-size: 1.4rem; color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);">...</div>
     </div>
 
     <div class="box">
-        <div class="box-title">Spatial Data (Lat, Lng, Alt)</div>
+        <div class="box-title">Tracker Coords(6-Decimal Precision)</div>
         <div class="coords-grid">
-            <div class="coord-item"><span class="coord-label">LAT</span><span id="outX">0.00</span></div>
-            <div class="coord-item"><span class="coord-label">LNG</span><span id="outY">0.00</span></div>
-            <div class="coord-item"><span class="coord-label">ALT</span><span id="outZ">0.0m</span></div>
+            <div class="coord-item"><span class="coord-label">LATITUDE</span><span id="outX" class="val-large">0.000000</span></div>
+            <div class="coord-item"><span class="coord-label">LONGITUDE</span><span id="outY" class="val-large">0.000000</span></div>
         </div>
     </div>
 
     <div class="split-row">
         <div class="box" style="margin-bottom:0;">
-            <div class="box-title">Distance</div>
-            <span style="font-size: 1.3rem;"><span id="displayM">0</span> m</span>
+            <div class="box-title">Distance (meters)</div>
+            <span style="font-size: 1.5rem; color: var(--neon-blue);"><span id="displayM">0.0</span> m</span>
         </div>
         <div class="box" style="margin-bottom:0;">
-            <div class="box-title">Steps</div>
-            <span style="font-size: 1.3rem;" id="displayS">0</span>
+            <div class="box-title">Est. Steps</div>
+            <span style="font-size: 1.5rem; color: var(--neon-blue);" id="displayS">0</span>
         </div>
     </div>
 
     <div class="needle-area">
+        <div class="compass-ring"></div>
         <div id="ptr" class="pointer"></div>
     </div>
 
     <div class="box protocol-box" id="pBox">
-        <div class="box-title" id="pLabel" style="color:var(--disabled)">Distance Protocol (Locked)</div>
+        <div class="box-title" id="pLabel" style="color:var(--disabled)">20M Boundary Protocol</div>
         <div class="controls">
             <div>
                 <span id="lockVal" class="fixed-val">20</span>
                 <small id="pUnit" style="color:var(--disabled); margin-left:5px;">MTR</small>
             </div>
             <label class="switch">
-                <input type="checkbox" id="pToggle">
+                <input type="checkbox" id="pToggle" onchange="handleProtocol()">
                 <span class="slider"></span>
             </label>
         </div>
@@ -170,60 +183,88 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
+    // 1. Initial Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyA-rK7iXlpN4I1gGqWxaYQXxt_kJUyVGGI",
         authDomain: "direct-15275.firebaseapp.com",
         databaseURL: "https://direct-15275-default-rtdb.asia-southeast1.firebasedatabase.app/",
         projectId: "direct-15275",
+        storageBucket: "direct-15275.firebasestorage.app",
+        messagingSenderId: "408729374045",
         appId: "1:408729374045:web:e4f89b945de9092d182cb4"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const parentID = localStorage.getItem("parentPhone");
-    const needle = document.getElementById('ptr');
 
-    // 1. UI Initialization
+    // Retrieve Identity
+    const simID = localStorage.getItem("trackedSim");
+    const parentPhone = localStorage.getItem("parentPhone");
     document.getElementById('uName').innerText = localStorage.getItem("childName") || "TARGET_ACTIVE";
 
-    // 2. Geolocation Watcher (PUSH Parent Coords to DB)
-   const parentID = localStorage.getItem("parentPhone");
+    let parentLoc = { lat: 0, lng: 0 };
 
-if (parentID && "geolocation" in navigator) {
-    navigator.geolocation.watchPosition((position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+    // 2. Browser Geolocation (Invisible Parent)
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition((pos) => {
+            parentLoc.lat = pos.coords.latitude;
+            parentLoc.lng = pos.coords.longitude;
 
-        // 1. DISPLAY: 6 Decimals shows movement down to 10cm (inches)
-        // This ensures people see the numbers "ticking" as you walk
-        document.getElementById('outX').innerText = lat.toFixed(6);
-        document.getElementById('outY').innerText = lng.toFixed(6);
-        
-        // 2. VISUALS: Rotate the needle slightly based on speed or random jitter 
-        // to show the system is "live" and active
-        const needle = document.getElementById('ptr');
-        needle.style.transform = `rotate(${(Math.random() * 10) - 5}deg)`;
+            // Silently push parent location to DB for Hardware 20m check
+            set(ref(db, 'parent_live/' + parentPhone), {
+                lat: parentLoc.lat,
+                lng: parentLoc.lng,
+                timestamp: Date.now()
+            });
+        }, null, { enableHighAccuracy: true });
+    }
 
-        // 3. PUSH: Send full precision to Firebase for the tracker
-        set(ref(db, 'tracking/' + parentID + '/parent_live'), {
-            lat: lat,
-            lng: lng,
-            timestamp: Date.now()
-        });
+    // 3. Monitor Tracker Hardware
+    const trackerRef = ref(db, 'live_coords/' + simID);
+    onValue(trackerRef, (snapshot) => {
+        const hardware = snapshot.val();
+        if (hardware && parentLoc.lat !== 0) {
+            // Display Hardware Coords with 6-decimal precision
+            document.getElementById('outX').innerText = hardware.lat.toFixed(6);
+            document.getElementById('outY').innerText = hardware.lng.toFixed(6);
 
-    }, (error) => {
-        console.error("Link Error: ", error.message);
-    }, {
-        enableHighAccuracy: true, // Forces phone to use GPS hardware, not just Wi-Fi
-        maximumAge: 0,            // Do NOT use a cached location
-        timeout: 27000            // Give the GPS time to respond
+            // Calculate Distance (Meters)
+            const m = calculateHaversine(parentLoc.lat, parentLoc.lng, hardware.lat, hardware.lng);
+            document.getElementById('displayM').innerText = m.toFixed(1);
+            
+            // Calculate Steps (0.76m avg step)
+            document.getElementById('displayS').innerText = Math.round(m / 0.76);
+
+            // Update Compass Arrow
+            const angle = calculateBearing(parentLoc.lat, parentLoc.lng, hardware.lat, hardware.lng);
+            document.getElementById('ptr').style.transform = `rotate(${angle}deg)`;
+        }
     });
-}
-    // 3. Distance Protocol Toggle Logic
-    document.getElementById('pToggle').addEventListener('change', (e) => {
-        const isOn = e.target.checked;
+
+    // --- MATH UTILITIES ---
+    function calculateHaversine(lat1, lon1, lat2, lon2) {
+        const R = 6371000; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+        const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+        const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                  Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+        return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    }
+
+    // Toggle Logic
+    window.handleProtocol = function() {
+        const isOn = document.getElementById('pToggle').checked;
         const box = document.getElementById('pBox');
         const label = document.getElementById('pLabel');
         const val = document.getElementById('lockVal');
@@ -234,28 +275,13 @@ if (parentID && "geolocation" in navigator) {
             val.classList.add('active');
             label.style.color = "var(--danger-red)";
             unit.style.color = "var(--danger-red)";
-            label.innerText = "Distance Protocol (ACTIVE)";
         } else {
             box.classList.remove('active');
             val.classList.remove('active');
             label.style.color = "var(--disabled)";
             unit.style.color = "var(--disabled)";
-            label.innerText = "Distance Protocol (Locked)";
         }
-    });
-
-    // 4. Listen for Child Data (To update distance display)
-    // This part assumes your ESP32-C3 is pushing to 'tracking/[parentID]/child_live'
-    const childRef = ref(db, 'tracking/' + parentID + '/child_live');
-    onValue(childRef, (snapshot) => {
-        const childData = snapshot.val();
-        if(childData) {
-            // Logic to calculate distance between Parent and Child would go here
-            // For the demo, we show the link is active
-            console.log("Child data received: ", childData);
-        }
-    });
-
+    }
 </script>
 
 </body>
