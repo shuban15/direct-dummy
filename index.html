@@ -2,204 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIRECT | MOBILE LINK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIRECT | STARK LINK</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-blue: #00f3ff;
-            --deep-black: #000000;
-        }
-
+        :root { --neon: #00f3ff; --glow: rgba(0, 243, 255, 0.4); }
         body {
-            background-color: var(--deep-black);
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
+            background: #000; color: #fff; font-family: 'Orbitron', sans-serif;
+            height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
+            background-image: radial-gradient(circle at 50% 50%, #001a1d 0%, #000 100%);
         }
-
-        body::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 150%;
-            height: 150%;
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.05) 0%, transparent 70%);
-            transform: translate(-50%, -50%);
-            z-index: -1;
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
-        }
-
-        .mobile-container {
-            width: 85%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 3rem;
-            letter-spacing: 10px;
-            color: var(--neon-blue);
-            text-shadow: 0 0 15px rgba(0, 243, 255, 0.7);
-            margin-bottom: 10px;
-        }
-
-        .tagline {
-            font-size: 0.7rem;
-            letter-spacing: 4px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 50px;
-            text-transform: uppercase;
-        }
-
-        .input-wrap {
-            position: relative;
-            margin-bottom: 35px;
-            text-align: left;
-        }
-
-        .input-wrap label {
-            display: block;
-            font-size: 0.6rem;
-            color: var(--neon-blue);
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .input-wrap input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .input-wrap input:focus {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        .holo-card {
             background: rgba(0, 243, 255, 0.05);
+            padding: 40px; border-radius: 20px; border: 1px solid var(--neon);
+            box-shadow: 0 0 20px var(--glow), inset 0 0 10px var(--glow);
+            backdrop-filter: blur(10px); width: 320px; text-align: center;
         }
-
-        .btn-link {
-            width: 100%;
-            background: var(--neon-blue);
-            color: black;
-            border: none;
-            padding: 18px;
-            border-radius: 12px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-            margin-top: 20px;
-            transition: 0.2s;
+        h2 { letter-spacing: 5px; color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { font-size: 0.7rem; color: var(--neon); opacity: 0.8; }
+        input {
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--neon);
+            color: #fff; padding: 10px 0; font-family: 'Orbitron'; outline: none;
         }
-
-        .btn-link:active {
-            transform: scale(0.96);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        button {
+            width: 100%; padding: 15px; margin-top: 20px; cursor: pointer;
+            background: var(--neon); color: #000; border: none; font-weight: bold;
+            font-family: 'Orbitron'; transition: 0.3s; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
         }
+        button:hover { box-shadow: 0 0 30px var(--neon); transform: scale(1.05); }
     </style>
 </head>
 <body>
-
-    <div class="mobile-container">
-        <div class="logo">D.I.R.E.C.T</div>
-        <div class="tagline">Mobile Satellite Link</div>
-
-        <div class="input-wrap">
-            <label>Serial Connection</label>
-            <input type="tel" id="simNum" placeholder="SIM ID" autocomplete="off">
+    <div class="holo-card">
+        <h2>D.I.R.E.C.T</h2>
+        <div class="input-group">
+            <label>PARENT NUMBER</label>
+            <input type="tel" id="parentNum" placeholder="+91XXXXXXXXXX">
         </div>
-
-        <div class="input-wrap">
-            <label>Parent Number</label>
-            <input type="tel" id="parentNum" placeholder="+91-XXXXXXXXXX" autocomplete="off">
+        <div class="input-group">
+            <label>TRACKER SIM ID</label>
+            <input type="text" id="simID" placeholder="ZORO-01">
         </div>
-
-        <div class="input-wrap">
-            <label>Target Label</label>
-            <input type="text" id="targetName" placeholder="CHILD NAME" autocomplete="off">
+        <div class="input-group">
+            <label>CHILD NAME</label>
+            <input type="text" id="childName" placeholder="SHUBAN">
         </div>
-
-        <button class="btn-link" onclick="startTracking()">INITIALIZE</button>
+        <button onclick="initLink()">INITIALIZE LINK</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-        // Your specific project configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA-rK7iXlpN4I1gGqWxaYQXxt_kJUyVGGI",
-            authDomain: "direct-15275.firebaseapp.com",
-            databaseURL: "https://direct-15275-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "direct-15275",
-            storageBucket: "direct-15275.firebasestorage.app",
-            messagingSenderId: "408729374045",
-            appId: "1:408729374045:web:e4f89b945de9092d182cb4"
-        };
-
-        // Initialize Firebase
+        const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Expose the function to the button
-        window.startTracking = function() {
-            const sim = document.getElementById('simNum').value;
-            const name = document.getElementById('targetName').value;
-            const parentPhone = document.getElementById('parentNum').value;
+        window.initLink = function() {
+            const pNum = document.getElementById('parentNum').value;
+            const sID = document.getElementById('simID').value;
+            const cName = document.getElementById('childName').value;
 
-            if(sim && name && parentPhone) {
-                // 1. Save to Local Storage for the next page
-                localStorage.setItem("trackedSim", sim);
-                localStorage.setItem("childName", name);
-                localStorage.setItem("parentPhone", parentPhone);
+            if(pNum && sID && cName) {
+                localStorage.setItem("parentNum", pNum);
+                localStorage.setItem("simID", sID);
+                localStorage.setItem("childName", cName);
 
-                // 2. Initialize the Parent node in Firebase
-                set(ref(db, 'tracking/parent_phones/' + parentPhone), {
-                    child_name: name,
-                    sim_id: sim,
-                    status: "INITIALIZING",
-                    timestamp: Date.now()
-                }).then(() => {
-                    // 3. Redirect after successful database write
-                    document.body.style.opacity = '0';
-                    document.body.style.transition = '0.5s';
-                    setTimeout(() => {
-                        window.location.href = "user.html"; 
-                    }, 500);
-                }).catch((error) => {
-                    alert("Database Error: " + error.message);
-                });
-            } else {
-                alert("ERROR: Required fields empty.");
+                set(ref(db, 'registry/' + sID), { parent_phone: pNum, child_name: cName })
+                .then(() => window.location.href = "user.html");
             }
         }
-</script>
-
+    </script>
 </body>
 </html>
