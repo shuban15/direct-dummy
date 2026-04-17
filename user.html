@@ -282,6 +282,28 @@
             unit.style.color = "var(--disabled)";
         }
     }
+    // Inside your user.html <script>
+let latestParentLoc = { lat: 0, lng: 0 };
+
+// 1. Continuously watch for the best accuracy
+navigator.geolocation.watchPosition((pos) => {
+    latestParentLoc.lat = pos.coords.latitude;
+    latestParentLoc.lng = pos.coords.longitude;
+}, (err) => console.error(err), { 
+    enableHighAccuracy: true,
+    maximumAge: 0 
+});
+
+// 2. FORCE push to Firebase every 1 second
+setInterval(() => {
+    if (latestParentLoc.lat !== 0) {
+        set(ref(db, 'parent_live/' + parentPhone), {
+            lat: latestParentLoc.lat,
+            lng: latestParentLoc.lng,
+            timestamp: Date.now()
+        });
+    }
+}, 1000);
 </script>
 
 </body>
