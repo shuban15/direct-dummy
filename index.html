@@ -42,11 +42,11 @@
         </div>
         <div class="input-group">
             <label>TRACKER SIM ID</label>
-            <input type="text" id="simID" placeholder="ZORO-01">
+            <input type="text" id="simID" placeholder="ZORO NUM">
         </div>
         <div class="input-group">
             <label>CHILD NAME</label>
-            <input type="text" id="childName" placeholder="SHUBAN">
+            <input type="text" id="childName" placeholder="NAME">
         </div>
         <button onclick="initLink()">INITIALIZE LINK</button>
     </div>
@@ -55,7 +55,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-        const firebaseConfig = { /* PASTE YOUR CONFIG HERE */ };
+        const firebaseConfig = { apiKey: "AIzaSyA-rK7iXlpN4I1gGqWxaYQXxt_kJUyVGGI",
+              authDomain: "direct-15275.firebaseapp.com",
+              databaseURL: "https://direct-15275-default-rtdb.asia-southeast1.firebasedatabase.app",
+              projectId: "direct-15275",
+              storageBucket: "direct-15275.firebasestorage.app",
+              messagingSenderId: "408729374045",
+              appId: "1:408729374045:web:e4f89b945de9092d182cb4",
+              measurementId: "G-2E20WQDXKK" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
